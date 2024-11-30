@@ -6,7 +6,7 @@
 /*   By: yooshima <yooshima@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/28 16:18:28 by yooshima          #+#    #+#             */
-/*   Updated: 2024/11/30 14:59:52 by yooshima         ###   ########.fr       */
+/*   Updated: 2024/11/30 16:14:47 by yooshima         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ int	main(void)
 			double B = 2.0 * vec_dot(tmp, ray_de);
 			double C = vec_dot(tmp, tmp) - sp_size * sp_size;
 			double D = B * B - 4 * A * C;
+
 			if (D == 0)
 			{
 				t = -B / (2 * A);
@@ -87,6 +88,7 @@ int	main(void)
 			}
 			else
 				t = 0;
+
 			if (t > 0)
 			{
 				intersection_pos = vec_add(&Camera, vec_mult(ray_de, t));
@@ -100,7 +102,7 @@ int	main(void)
 				mlx_pixel_put(mlx, win, i, j, create_trgb(0, 255 * inner, 255 * inner, 255 * inner));
 			}
 			else
-				mlx_pixel_put(mlx, win, i, j, );
+				mlx_pixel_put(mlx, win, i, j, 100);
 		}
 	}
 	mlx_loop(mlx);
