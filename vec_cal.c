@@ -6,7 +6,7 @@
 /*   By: yooshima <yooshima@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/29 11:22:40 by yooshima          #+#    #+#             */
-/*   Updated: 2024/11/29 11:23:38 by yooshima         ###   ########.fr       */
+/*   Updated: 2024/11/29 14:39:35 by yooshima         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,4 +43,9 @@ t_vec	*vec_mult(t_vec *a, double mult)
 	res->y = a->y * mult;
 	res->z = a->z * mult;
 	return (res);
+}
+
+double vec_dot(t_vec *a, t_vec *b)
+{
+	return(a->x * b->x + a->y * b->y + a->z * b->z);
 }
