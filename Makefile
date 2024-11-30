@@ -6,7 +6,7 @@
 #    By: yooshima <yooshima@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/11/28 16:24:23 by yooshima          #+#    #+#              #
-#    Updated: 2024/11/29 11:06:50 by yooshima         ###   ########.fr        #
+#    Updated: 2024/11/30 12:41:10 by yooshima         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ MLX_FLAGS	=	-Lmlx -lXext -lX11
 
 CC			=	cc
 CFLAGS		=	-Wall -Wextra -Werror
-IFLAGS		=	-I ./inc -I $(MLX_DIR)
+MATH_FLAGS	=	-lm
 
 %.o:		%.c
 			${CC} ${CFLAGS} -c $< -o $@
@@ -32,7 +32,7 @@ IFLAGS		=	-I ./inc -I $(MLX_DIR)
 all:			$(NAME)
 
 $(NAME):		$(MLX_LIB) $(OBJ)
-				$(CC) $(CFLAGS) $(OBJ) -o $(NAME) $(MLX_FLAGS) $(MLX_LIB)
+				$(CC) $(CFLAGS) $(MATH_FLAGS) $(OBJ) -o $(NAME) $(MLX_FLAGS) $(MLX_LIB)
 
 $(MLX_LIB):
 				${MAKE} -C $(MLX_DIR)
