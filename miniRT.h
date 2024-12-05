@@ -6,7 +6,7 @@
 /*   By: yooshima <yooshima@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/29 11:22:53 by yooshima          #+#    #+#             */
-/*   Updated: 2024/12/04 17:25:31 by yooshima         ###   ########.fr       */
+/*   Updated: 2024/12/05 13:53:37 by yooshima         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include <strings.h>
 
 typedef struct s_vec
 {
@@ -24,13 +25,6 @@ typedef struct s_vec
 	double z;
 }	t_vec;
 
-typedef struct s_discriminant
-{
-	double A;
-	double B;
-	double C;
-	double D;
-}	t_abcd;
 
 typedef struct s_data
 {
@@ -43,16 +37,37 @@ typedef struct s_data
 	int endian;
 }	t_data;
 
-typedef struct s_obj
+typedef enum s_obj_kind
 {
-	// t_obj_kind kind;一旦球体しか存在しません
+	AMBIENT,
+	CAMERA,
+	LIGHT,
+	SPHERE,
+	PLANE,
+	CYLINDER
+}	t_obj_kind;
+
+typedef struct s_objs
+{
+	t_obj_kind kind;
 	t_vec pos;
 	double diameter;
 	int rgb[3];
+	struct s_objs *next;
 }	t_objs;
+
+typedef struct s_hit
+{
+	double A;
+	double B;
+	double C;
+	double D;
+	t_objs *obj;
+}	t_hit;
 
 typedef struct s_intersection
 {
+	t_objs *obj;
 	double t;
 	t_vec intersection_pos;
 	t_vec incident_ray_vec;

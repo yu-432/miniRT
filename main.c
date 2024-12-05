@@ -6,7 +6,7 @@
 /*   By: yooshima <yooshima@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/28 16:18:28 by yooshima          #+#    #+#             */
-/*   Updated: 2024/12/04 17:41:17 by yooshima         ###   ########.fr       */
+/*   Updated: 2024/12/05 13:53:19 by yooshima         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,22 +65,22 @@ void init_mlx(t_data *mlx_data)
 	mlx_data->win = mlx_new_window(mlx_data->mlx, WIDTH, HEIGHT, "miniRT");
 }
 
-t_abcd hit_sphere(t_vec pw, t_vec camera, t_objs objs)
+t_hit hit_sphere(t_vec pw, t_vec camera, t_objs *obj)
 {
-	t_abcd abcd;
+	t_hit abcd;
 	t_vec ray;
-	t_vec tmp;
+	t_vec tmp_vec;
 
 	ray = vec_sub(pw, camera);
-	tmp = vec_sub(camera, objs.pos);
+	tmp_vec = vec_sub(camera, obj->pos);
 	abcd.A = vec_dot(ray, ray);
-	abcd.B = 2.0 * vec_dot(tmp, ray);
-	abcd.C = vec_dot(tmp, tmp) - objs.diameter * objs.diameter;
+	abcd.B = 2.0 * vec_dot(tmp_vec, ray);
+	abcd.C = vec_dot(tmp_vec, tmp_vec) - obj->diameter * obj->diameter;
 	abcd.D = abcd.B * abcd.B - 4 * abcd.A * abcd.C;
 	return (abcd);
 }
 
-double calc_distance(t_abcd abcd)
+double calc_distance(t_hit abcd)
 {
 	double t1;
 	double t2;
@@ -102,11 +102,26 @@ double calc_distance(t_abcd abcd)
 t_intersection get_intersection_point(t_vec pw, t_vec camera, t_objs objs)
 {
 	t_intersection intersection;
-	t_abcd abcd;
-	
+	t_objs *obj_temp;
+	t_hit abcd;
+	double min_t;
+	double temp_t;
 
-	abcd = hit_sphere(pw, camera, objs);
-	intersection.t = calc_distance(abcd);//交点までの距離
+	min_t = 0;//どうにかしろ
+	obj_temp = &objs;
+	bzero(&intersection, sizeof(t_intersection));
+	while(obj_temp)
+	{
+		abcd = hit_sphere(pw, camera, obj_temp);
+		temp_t = calc_distance(abcd);//交点までの距離
+		if (temp_t > 0 && (temp_t < min_t || min_t == 0))
+		{
+			min_t = temp_t;
+			intersection.t = min_t;
+			intersection.obj = obj_temp;
+		}
+		obj_temp = obj_temp->next;
+	}
 	if (intersection.t <= 0)
 		return (intersection);
 	intersection.intersection_pos = vec_add(camera, \
@@ -114,11 +129,11 @@ t_intersection get_intersection_point(t_vec pw, t_vec camera, t_objs objs)
 	return (intersection);
 }
 
-void calc_incident_and_normal_vec(t_intersection *intersection, t_vec light, t_vec obj_pos)
+void calc_incident_and_normal_vec(t_intersection *intersection, t_vec light)
 {
 	intersection->incident_ray_vec = vec_sub(light, intersection->intersection_pos);//入射ベクトルの計算
 	normalize(&intersection->incident_ray_vec);//正規化
-	intersection->normal_vec = vec_sub(intersection->intersection_pos, obj_pos);//法線ベクトル
+	intersection->normal_vec = vec_sub(intersection->intersection_pos, intersection->obj->pos);//法線ベクトル
 	normalize(&intersection->normal_vec);//正規化
 	intersection->inner = calc_inner(intersection->incident_ray_vec, intersection->normal_vec);
 }
@@ -135,18 +150,17 @@ double calc_specular_reflection(t_vec camera, t_intersection *intersection)
 		vec_dot(intersection->normal_vec, intersection->incident_ray_vec) * 2), intersection->incident_ray_vec);
 	inverse_ray_vec = vec_mult(camera, -1);
 	normalize(&inverse_ray_vec);
-	// specular_inner = calc_inner(normal_reflection_vec, inverse_ray_vec); [0,1]の正規化？わからん
-	specular_inner = vec_dot(normal_reflection_vec, inverse_ray_vec);
+	specular_inner = vec_dot(normal_reflection_vec, inverse_ray_vec);//引数は両方とも正規化されているため、0~1の値になる
 	return(SPECULAR_REFLECTION * LIGHT_INTENSITY * pow(specular_inner, 8));
 }
 
-double calc_radiance(t_intersection *intersection, t_objs objs, t_vec camera, t_vec light)
+double calc_radiance(t_intersection *intersection, t_vec camera, t_vec light)
 {
 	double radiance_specular;//鏡面輝度
 	double radiance_diffuse;//拡散輝度
 	double radiance_ambient;//環境輝度
 
-	calc_incident_and_normal_vec(intersection, light, objs.pos);
+	calc_incident_and_normal_vec(intersection, light);
 	radiance_specular = calc_specular_reflection(camera, intersection);
 	radiance_diffuse = DIFFUSE_REFLECTION * LUMINANCE_RATIO * intersection->inner;
 	radiance_ambient = AMBIENT_REFLECTION * AMBIENT_LIGHT_RATIO;
@@ -174,9 +188,9 @@ int	main(void) //drawingのみの実装
 			intersection = get_intersection_point(pw, Camera, objs);//交点が存在する場合カメラから交点までの距離,座標を返す
 			if (intersection.t > 0)
 			{
-				radiance = calc_radiance(&intersection, objs, Camera, Light);
-				my_pixel_put(&mlx_data, i, j, create_trgb(0, 230 * radiance, \
-					255 * radiance, 255 * radiance));
+				radiance = calc_radiance(&intersection, Camera, Light);
+				my_pixel_put(&mlx_data, i, j, create_trgb(0, intersection.obj->rgb[R] * radiance, \
+					intersection.obj->rgb[G] * radiance, intersection.obj->rgb[B] * radiance));
 			}
 			else
 				my_pixel_put(&mlx_data, i, j, create_trgb(0, 140, 220, 230));
